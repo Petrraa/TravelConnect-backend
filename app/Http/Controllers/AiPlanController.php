@@ -44,6 +44,8 @@ class AiPlanController extends Controller
         $system = "Ti si travel planner. Vrati ISKLJUČIVO validan JSON bez dodatnog teksta.";
         $user = "Napravi plan putovanja kao JSON sa ovom strukturom:
 {
+  \"title\": string,
+  \"description\": string,  
   \"summary\": string,
   \"tips\": string[],
   \"days\": [
@@ -56,6 +58,7 @@ class AiPlanController extends Controller
     }
   ]
 }
+Vrati tačno {$promptJson['days']} dana.
 Ulazni podaci: " . json_encode($promptJson, JSON_UNESCAPED_UNICODE);
 
         $response = OpenAI::responses()->create([

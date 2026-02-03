@@ -71,6 +71,7 @@ class TripController extends Controller
 
         $data = $request->validate([
             'title' => ['sometimes','required','string','max:255'],
+            'description' => 'nullable|string|max:2000',
             'destination' => ['sometimes','required','string','max:255'],
             'start_date' => ['nullable','date'],
             'end_date' => ['nullable','date'],
