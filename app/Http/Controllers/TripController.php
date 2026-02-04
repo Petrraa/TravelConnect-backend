@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Trip;
+use App\Models\TripImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
 
 class TripController extends Controller
 {
@@ -15,7 +15,7 @@ class TripController extends Controller
         $userId = $request->user()->id;
 
         $trips = Trip::query()
-            ->with('user:id,username') // ko je vlasnik
+            ->with('user:id,username')
             ->where('user_id', $userId)
             ->orWhere('is_public', true)
             ->orderByDesc('id')
@@ -28,18 +28,25 @@ class TripController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => ['required','string','max:255'],
-            'destination' => ['required','string','max:255'],
-            'start_date' => ['nullable','date'],
-            'end_date' => ['nullable','date'],
-            'budget' => ['nullable','numeric','min:0'],
-            'travel_style' => ['nullable','string','max:50'],
-            'pace' => ['nullable','string','max:50'],
-            'is_public' => ['nullable','boolean'],
-            'image' => 'nullable|image|max:2048',
+            'title' => ['required', 'string', 'max:255'],
+            'destination' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'travel_style' => ['nullable', 'string', 'max:50'],
+            'pace' => ['nullable', 'string', 'max:50'],
+            'is_public' => ['nullable', 'boolean'],
 
+            // ✅ COVER SLIKA
+            'image' => ['nullable', 'image', 'max:2048'],
+
+            // ✅ GALERIJA
+            'images' => ['nullable', 'array'],
+            'images.*' => ['image', 'max:2048'],
         ]);
 
+        // ✅ upload cover slike
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('trips', 'public');
         }
@@ -50,6 +57,18 @@ class TripController extends Controller
             'is_public' => $data['is_public'] ?? false,
         ]);
 
+        // ✅ upload galerije
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $img) {
+                $path = $img->store('trips', 'public');
+
+                TripImage::create([
+                    'trip_id' => $trip->id,
+                    'image' => $path,
+                ]);
+            }
+        }
+
         return response()->json(['trip' => $trip], 201);
     }
 
@@ -59,6 +78,7 @@ class TripController extends Controller
         $trip->load([
             'user:id,username',
             'days.items',
+            'images', // ✅ GALERIJA
         ]);
 
         return response()->json(['trip' => $trip]);
@@ -70,28 +90,46 @@ class TripController extends Controller
         $this->authorizeOwner($request, $trip);
 
         $data = $request->validate([
-            'title' => ['sometimes','required','string','max:255'],
-            'destination' => ['sometimes','required','string','max:255'],
-            'start_date' => ['nullable','date'],
-            'end_date' => ['nullable','date'],
-            'budget' => ['nullable','numeric','min:0'],
-            'travel_style' => ['nullable','string','max:50'],
-            'pace' => ['nullable','string','max:50'],
-            'is_public' => ['nullable','boolean'],
-            'image' => 'nullable|image|max:2048',
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'destination' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'budget' => ['nullable', 'numeric', 'min:0'],
+            'travel_style' => ['nullable', 'string', 'max:50'],
+            'pace' => ['nullable', 'string', 'max:50'],
+            'is_public' => ['nullable', 'boolean'],
 
+            // ✅ COVER
+            'image' => ['nullable', 'image', 'max:2048'],
+
+            // ✅ GALERIJA
+            'images' => ['nullable', 'array'],
+            'images.*' => ['image', 'max:2048'],
         ]);
+
+        // ✅ zamjena cover slike
         if ($request->hasFile('image')) {
-    
-        if ($trip->image) {
-            Storage::disk('public')->delete($trip->image);
-        }
+            if ($trip->image) {
+                Storage::disk('public')->delete($trip->image);
+            }
 
-        $data['image'] = $request->file('image')->store('trips', 'public');
+            $data['image'] = $request->file('image')->store('trips', 'public');
         }
-
 
         $trip->update($data);
+
+        // ✅ dodavanje novih slika u galeriju (ne brišemo stare)
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $img) {
+                $path = $img->store('trips', 'public');
+
+                TripImage::create([
+                    'trip_id' => $trip->id,
+                    'image' => $path,
+                ]);
+            }
+        }
 
         return response()->json(['trip' => $trip]);
     }
@@ -100,6 +138,16 @@ class TripController extends Controller
     public function destroy(Request $request, Trip $trip)
     {
         $this->authorizeOwner($request, $trip);
+
+        // ✅ brišemo cover sliku
+        if ($trip->image) {
+            Storage::disk('public')->delete($trip->image);
+        }
+
+        // ✅ brišemo galeriju slika
+        foreach ($trip->images as $img) {
+            Storage::disk('public')->delete($img->image);
+        }
 
         $trip->delete();
 

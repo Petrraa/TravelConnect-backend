@@ -138,7 +138,7 @@ Ulazni podaci: " . json_encode($promptJson, JSON_UNESCAPED_UNICODE);
         'interests' => $data['interests'] ?? [],
     ];
 
-    $plan = $this->generatePlanFromOpenAI($promptJson); 
+    $plan = $this->generatePlanFromOpenAI($promptJson);
 
     $result = DB::transaction(function () use ($request, $trip, $replace, $promptJson, $plan) {
 
@@ -177,7 +177,7 @@ Ulazni podaci: " . json_encode($promptJson, JSON_UNESCAPED_UNICODE);
                     'type' => $itemData['type'] ?? 'activity',
                     'title' => $itemData['title'] ?? 'Aktivnost',
                     'location' => $itemData['location'] ?? null,
-                    'start_time' => $itemData['time'] ?? null, 
+                    'start_time' => $itemData['time'] ?? null,
                     'end_time' => null,
                     'notes' => $itemData['notes'] ?? null,
                     'cost_estimate' => null,
