@@ -27,8 +27,4 @@ class TripPost extends Model
         return $this->hasMany(Like::class, 'trip_post_id');
     }
 
-    public function comments()
-    {
-        return $this->hasMany(Comment::class, 'trip_post_id');
-    }
 }

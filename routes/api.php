@@ -44,9 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle']);
 
-    Route::post('/posts/{post}/comments', [CommentController::class, 'store']);
-    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
-
     Route::post('/ai/plan', [AiPlanController::class, 'generate']);
 
     Route::post('/ai/plan-and-apply', [AiPlanController::class, 'planAndApply']);

@@ -90,25 +90,17 @@ class TripController extends Controller
         $this->authorizeOwner($request, $trip);
 
         $data = $request->validate([
-            'title' => ['sometimes', 'required', 'string', 'max:255'],
-            'destination' => ['sometimes', 'required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date'],
-            'budget' => ['nullable', 'numeric', 'min:0'],
-            'travel_style' => ['nullable', 'string', 'max:50'],
-            'pace' => ['nullable', 'string', 'max:50'],
-            'is_public' => ['nullable', 'boolean'],
+            'title' => ['sometimes','required','string','max:255'],
+            'destination' => ['sometimes','required','string','max:255'],
+            'start_date' => ['nullable','date'],
+            'end_date' => ['nullable','date'],
+            'budget' => ['nullable','numeric','min:0'],
+            'travel_style' => ['nullable','string','max:50'],
+            'pace' => ['nullable','string','max:50'],
+            'is_public' => ['nullable','boolean'],
+            'image' => 'nullable|image|max:2048',
 
-            // ✅ COVER
-            'image' => ['nullable', 'image', 'max:2048'],
-
-            // ✅ GALERIJA
-            'images' => ['nullable', 'array'],
-            'images.*' => ['image', 'max:2048'],
         ]);
-
-        // ✅ zamjena cover slike
         if ($request->hasFile('image')) {
             if ($trip->image) {
                 Storage::disk('public')->delete($trip->image);
