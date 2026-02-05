@@ -81,11 +81,6 @@ public function likes()
 {
     return $this->hasMany(\App\Models\Like::class);
 }
-
-public function comments()
-{
-    return $this->hasMany(\App\Models\Comment::class);
-}
 public function aiGenerations()
 {
     return $this->hasMany(\App\Models\AiGeneration::class);
